@@ -1,0 +1,17 @@
+<div class="employee-list">
+    <h2>Employees</h2>
+    <table>
+    <thead>
+    <tr>
+    <th>Name</th>
+    <th>Time in Month</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr *ngFor="let employee of employeesToDisplay">
+    <td [ngClass]="{'highlight': employee.TotalTimeHrs < 100}">{{ employee.EmployeeName }}</td>
+    <td [ngClass]="{'highlight': employee.TotalTimeHrs < 100}">{{ employee.TotalTimeHrs | round }}</td>
+    </tr>
+    </tbody>
+    </table>
+   </div>
