@@ -2,7 +2,9 @@ import { Component } from '@angular/core';
 import { EmployeeService } from '../employee.service';
 import { Employee } from '../_models/employee.interface';
 import { EmployeeDisplay } from '../_models/employeeToDisplay.interface';
-import { group } from '@angular/animations';
+import {Chart, registerables} from 'chart.js/auto';
+
+Chart.register(...registerables);
 
 @Component({
   selector: 'app-employee-list',
@@ -12,6 +14,7 @@ import { group } from '@angular/animations';
 export class EmployeeListComponent {
   employees: Employee[] = [];
   employeesToDisplay: EmployeeDisplay[] = [];
+  chart: any = [];
 
 
   constructor(private employeeService: EmployeeService) {}
@@ -57,6 +60,65 @@ export class EmployeeListComponent {
       });
 
       this.employeesToDisplay.sort((a, b) => b.TotalTimeHrs - a.TotalTimeHrs);
+
+      var options = {
+        tooltips: {
+          enabled: false
+        },
+        plugins: {
+          datalabels: {
+            formatter: (value: number, ctx: { chart: { data: { datasets: { data: any; }[]; }; }; }) => {
+              const datapoints = ctx.chart.data.datasets[0].data
+               const total = datapoints.reduce((total: any, datapoint: any) => total + datapoint, 0)
+              const percentage = value / total * 100
+              return percentage.toFixed(2) + "%";
+            },
+            color: '#fff',
+          }
+        }
+      };
+      
+      this.chart = new Chart('canvas', 
+      {
+        type: 'pie',
+        data: {
+          labels: this.employeesToDisplay.map(names => names.EmployeeName),
+          datasets: [
+            {
+              data: this.employeesToDisplay.map(hours => hours.TotalTimeHrs),
+              borderWidth: 1,
+            },
+          ], 
+        },
+        options: {
+          plugins: {
+            legend : {
+              position : 'bottom'
+            },
+            tooltip: {
+              callbacks: {
+                label: function(context){
+                  var data = context.dataset.data,
+                      label = context.label,
+                      currentValue : any = context.raw,
+                      total = 0;
+        
+                  for( var i = 0; i < data.length; i++ ){
+                    total += data[i];
+                  }
+                  var percentage = parseFloat(( currentValue /total*100).toFixed(1));
+        
+                  return ' (' + percentage + '%)';
+                }
+              },
+            },
+            // labels: {
+            //   render: 'percentage',
+            //   precision: 2
+            // }
+          },
+        },
+      });
     })
   }
 
